@@ -157,9 +157,11 @@ function loadPosts() {
 // Like Post
 function likePost(postId) {
   const user = auth.currentUser;
+  if (!user) return;
+
   const likeRef = database.ref(`posts/${postId}/likes/${user.uid}`);
 
-  likeRef.once("value").then(snapshot => {
+  likeRef.once("value", snapshot => {
     if (snapshot.exists()) {
       // Unlike
       likeRef.remove();
