@@ -66,3 +66,22 @@ button:hover {
   text-align: left;
   box-shadow: 0 0 10px rgba(122,0,255,0.3);
 }
+
+.post-card {
+  background: #111;
+  margin: 15px 0;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #ff00aa;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.post-card button {
+  margin: 5px;
+  font-size: 12px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
