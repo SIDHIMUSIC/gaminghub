@@ -82,6 +82,11 @@ function loadPosts() {
 
     postsDiv.innerHTML = "<h3>Community Posts</h3>";
 
+    if (!snapshot.exists()) {
+      postsDiv.innerHTML += "<p>No posts yet</p>";
+      return;
+    }
+
     snapshot.forEach(child => {
 
       const data = child.val();
@@ -91,33 +96,64 @@ function loadPosts() {
       const date = new Date(data.timestamp);
       const timeString = date.toLocaleString();
 
-      // ✅ Count likes properly
+      // ✅ Safe like count
       const likesCount = data.likes ? Object.keys(data.likes).length : 0;
 
-      // ✅ Check if current user liked
-      const userLiked = data.likes && data.likes[currentUser.uid];
+      // ✅ Safe liked check
+      const userLiked =
+        currentUser && data.likes && data.likes[currentUser.uid];
+
+      // ✅ Render comments
+      let commentsHTML = "";
+      if (data.comments) {
+        Object.entries(data.comments).forEach(([cid, comment]) => {
+          commentsHTML += `
+            <div class="comment">
+              <strong>${comment.email}</strong>: ${comment.text}
+              <small>${new Date(comment.timestamp).toLocaleString()}</small>
+              ${
+                currentUser && currentUser.uid === comment.uid
+                  ? `<button onclick="deleteComment('${postId}','${cid}')">X</button>`
+                  : ""
+              }
+            </div>
+          `;
+        });
+      }
 
       postsDiv.innerHTML += `
         <div class="post-card">
+
           <strong>${data.email}</strong>
           <p>${data.text}</p>
           <small>${timeString}</small>
-          <br>
-          ❤️ ${likesCount}
-          <button onclick="likePost('${postId}')">
-            ${userLiked ? "Unlike" : "Like"}
-          </button>
-          ${
-            currentUser.uid === data.uid
-              ? `<button onclick="deletePost('${postId}')">Delete</button>`
-              : ""
-          }
+
+          <div style="margin-top:8px;">
+            ❤️ ${likesCount}
+            <button onclick="likePost('${postId}')">
+              ${userLiked ? "Unlike" : "Like"}
+            </button>
+
+            ${
+              currentUser && currentUser.uid === data.uid
+                ? `<button onclick="deletePost('${postId}')">Delete</button>`
+                : ""
+            }
+          </div>
+
+          <div class="comments-section">
+            <h4>Comments</h4>
+            ${commentsHTML}
+
+            <input id="comment-${postId}" placeholder="Write comment..." />
+            <button onclick="addComment('${postId}')">Comment</button>
+          </div>
+
         </div>
       `;
     });
   });
 }
-
 // Like Post
 function likePost(postId) {
   const user = auth.currentUser;
