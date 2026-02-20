@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gaming Community Hub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>🎮 Gaming Community Hub</h1>
+
+  <div id="auth">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="signup()">Signup</button>
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <h2>Dashboard</h2>
+    <input id="postInput" placeholder="Write something...">
+    <button onclick="addPost()">Post</button>
+    <button onclick="logout()">Logout</button>
+
+    <div id="posts"></div>
+  </div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
