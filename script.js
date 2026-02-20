@@ -1,4 +1,4 @@
-// Firebase Configuration
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAJ_orkgIUsqXLyhRX472muqBEfvJR2pA0",
   authDomain: "gaming-hub-f0a02.firebaseapp.com",
@@ -9,7 +9,6 @@ const firebaseConfig = {
   appId: "1:1082032322501:web:092ac218180c625b2cfdac"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -19,7 +18,7 @@ const authDiv = document.getElementById("auth");
 const dashboard = document.getElementById("dashboard");
 const postsDiv = document.getElementById("posts");
 
-// Check Login State
+// Auth State
 auth.onAuthStateChanged(user => {
   if (user) {
     authDiv.style.display = "none";
@@ -33,60 +32,92 @@ auth.onAuthStateChanged(user => {
 
 // Signup
 function signup() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
+  const email = emailInput();
+  const password = passwordInput();
   auth.createUserWithEmailAndPassword(email, password)
-    .catch(error => alert(error.message));
+    .catch(err => alert(err.message));
 }
 
 // Login
 function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
+  const email = emailInput();
+  const password = passwordInput();
   auth.signInWithEmailAndPassword(email, password)
-    .catch(error => alert(error.message));
+    .catch(err => alert(err.message));
 }
 
-// Logout
 function logout() {
   auth.signOut();
+}
+
+function emailInput() {
+  return document.getElementById("email").value;
+}
+
+function passwordInput() {
+  return document.getElementById("password").value;
 }
 
 // Add Post
 function addPost() {
   const text = document.getElementById("postInput").value;
-  const user = auth.currentUser.email;
+  if (!text) return alert("Write something first");
+
+  const user = auth.currentUser;
 
   database.ref("posts").push({
     text: text,
-    user: user
+    email: user.email,
+    uid: user.uid,
+    timestamp: Date.now(),
+    likes: 0
   });
 
   document.getElementById("postInput").value = "";
 }
 
-// Load Posts
+// Load Posts (Real-Time)
 function loadPosts() {
   database.ref("posts").on("value", snapshot => {
-    postsDiv.innerHTML = "<h3 style='margin-top:20px;'>Community Posts</h3>";
+
+    postsDiv.innerHTML = "<h3>Community Posts</h3>";
 
     snapshot.forEach(child => {
+
       const data = child.val();
+      const postId = child.key;
+      const currentUser = auth.currentUser;
+
+      const date = new Date(data.timestamp);
+      const timeString = date.toLocaleString();
 
       postsDiv.innerHTML += `
-        <div style="
-          background:#111;
-          margin:15px 0;
-          padding:15px;
-          border-radius:10px;
-          box-shadow:0 0 10px #ff00aa;
-        ">
-          <strong>${data.user}</strong>
+        <div class="post-card">
+          <strong>${data.email}</strong>
           <p>${data.text}</p>
+          <small>${timeString}</small>
+          <br>
+          ❤️ ${data.likes}
+          <button onclick="likePost('${postId}', ${data.likes})">Like</button>
+          ${
+            currentUser.uid === data.uid
+              ? `<button onclick="deletePost('${postId}')">Delete</button>`
+              : ""
+          }
         </div>
       `;
     });
   });
+}
+
+// Like Post
+function likePost(postId, currentLikes) {
+  database.ref("posts/" + postId).update({
+    likes: currentLikes + 1
+  });
+}
+
+// Delete Post
+function deletePost(postId) {
+  database.ref("posts/" + postId).remove();
 }
