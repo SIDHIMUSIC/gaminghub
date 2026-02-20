@@ -91,14 +91,22 @@ function loadPosts() {
       const date = new Date(data.timestamp);
       const timeString = date.toLocaleString();
 
+      // ✅ Count likes properly
+      const likesCount = data.likes ? Object.keys(data.likes).length : 0;
+
+      // ✅ Check if current user liked
+      const userLiked = data.likes && data.likes[currentUser.uid];
+
       postsDiv.innerHTML += `
         <div class="post-card">
           <strong>${data.email}</strong>
           <p>${data.text}</p>
           <small>${timeString}</small>
           <br>
-          ❤️ ${data.likes}
-          <button onclick="likePost('${postId}', ${data.likes})">Like</button>
+          ❤️ ${likesCount}
+          <button onclick="likePost('${postId}')">
+            ${userLiked ? "Unlike" : "Like"}
+          </button>
           ${
             currentUser.uid === data.uid
               ? `<button onclick="deletePost('${postId}')">Delete</button>`
@@ -111,9 +119,18 @@ function loadPosts() {
 }
 
 // Like Post
-function likePost(postId, currentLikes) {
-  database.ref("posts/" + postId).update({
-    likes: currentLikes + 1
+function likePost(postId) {
+  const user = auth.currentUser;
+  const likeRef = database.ref(`posts/${postId}/likes/${user.uid}`);
+
+  likeRef.once("value").then(snapshot => {
+    if (snapshot.exists()) {
+      // Unlike
+      likeRef.remove();
+    } else {
+      // Like
+      likeRef.set(true);
+    }
   });
 }
 
