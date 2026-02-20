@@ -70,13 +70,12 @@ function addPost() {
     email: user.email,
     uid: user.uid,
     timestamp: Date.now(),
-    likes: {},        // ✅ FIXED
-    comments: {}      // ✅ Prepare structure
+    likes: {},
+    comments: {}
   });
 
   document.getElementById("postInput").value = "";
 }
-
 // Load Posts (Real-Time)
 function loadPosts() {
   database.ref("posts").on("value", snapshot => {
