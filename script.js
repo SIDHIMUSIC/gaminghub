@@ -19,7 +19,12 @@ const dashboard = document.getElementById("dashboard");
 const postsDiv = document.getElementById("posts");
 
 // ================== AUTH ==================
+
 auth.onAuthStateChanged(user => {
+
+  const loader = document.getElementById("loader");
+  if (loader) loader.style.display = "none";
+
   if (user) {
     authDiv.style.display = "none";
     dashboard.style.display = "block";
@@ -30,22 +35,54 @@ auth.onAuthStateChanged(user => {
   }
 });
 
+// ================== SIGNUP ==================
+
 function signup() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    return alert("Email and Password required");
+  }
+
+  if (password.length < 6) {
+    return alert("Password must be at least 6 characters");
+  }
+
   auth.createUserWithEmailAndPassword(email, password)
+    .then(() => {
+      document.getElementById("email").value = "";
+      document.getElementById("password").value = "";
+    })
     .catch(err => alert(err.message));
 }
+
+// ================== LOGIN ==================
 
 function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    return alert("Enter email and password");
+  }
+
   auth.signInWithEmailAndPassword(email, password)
-    .catch(err => alert(err.message));
+    .then(() => {
+      document.getElementById("email").value = "";
+      document.getElementById("password").value = "";
+    })
+    .catch(err => alert("Login Failed: " + err.message));
 }
 
+// ================== LOGOUT ==================
+
 function logout() {
-  auth.signOut();
+  auth.signOut().then(() => {
+    postsDiv.innerHTML = "";
+  });
 }
 
 // ================== ADD POST ==================
