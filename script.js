@@ -70,11 +70,19 @@ function addPost() {
 // Load Posts
 function loadPosts() {
   database.ref("posts").on("value", snapshot => {
-    postsDiv.innerHTML = "";
+    postsDiv.innerHTML = "<h3 style='margin-top:20px;'>Community Posts</h3>";
+
     snapshot.forEach(child => {
       const data = child.val();
+
       postsDiv.innerHTML += `
-        <div style="margin:15px; padding:10px; background:#1a1a1a;">
+        <div style="
+          background:#111;
+          margin:15px 0;
+          padding:15px;
+          border-radius:10px;
+          box-shadow:0 0 10px #ff00aa;
+        ">
           <strong>${data.user}</strong>
           <p>${data.text}</p>
         </div>
