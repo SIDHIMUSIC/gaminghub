@@ -60,7 +60,7 @@ function passwordInput() {
 
 // Add Post
 function addPost() {
-  const text = document.getElementById("postInput").value;
+  const text = document.getElementById("postInput").value.trim();
   if (!text) return alert("Write something first");
 
   const user = auth.currentUser;
@@ -70,7 +70,8 @@ function addPost() {
     email: user.email,
     uid: user.uid,
     timestamp: Date.now(),
-    likes: 0
+    likes: {},        // ✅ FIXED
+    comments: {}      // ✅ Prepare structure
   });
 
   document.getElementById("postInput").value = "";
@@ -97,7 +98,10 @@ function loadPosts() {
       const timeString = date.toLocaleString();
 
       // ✅ Safe like count
-      const likesCount = data.likes ? Object.keys(data.likes).length : 0;
+      const likesCount =
+  data.likes && typeof data.likes === "object"
+    ? Object.keys(data.likes).length
+    : 0;
 
       // ✅ Safe liked check
       const userLiked =
@@ -175,4 +179,24 @@ function likePost(postId) {
 // Delete Post
 function deletePost(postId) {
   database.ref("posts/" + postId).remove();
+}
+// Add Comment
+function addComment(postId) {
+  const user = auth.currentUser;
+  if (!user) return alert("Login required");
+
+  const input = document.getElementById("comment-" + postId);
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return alert("Write comment");
+
+  database.ref("posts/" + postId + "/comments").push({
+    uid: user.uid,
+    email: user.email,
+    text: text,
+    timestamp: Date.now()
+  });
+
+  input.value = "";
 }
