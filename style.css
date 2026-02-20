@@ -146,3 +146,12 @@ button:hover {
   color: #ff00aa;
   z-index: 9999;
 }
+.post-card {
+  animation: cardBreathe 4s ease-in-out infinite;
+}
+
+@keyframes cardBreathe {
+  0% { box-shadow: 0 0 10px #ff00aa; }
+  50% { box-shadow: 0 0 20px #7a00ff; }
+  100% { box-shadow: 0 0 10px #ff00aa; }
+}
