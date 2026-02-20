@@ -1,4 +1,4 @@
-// Firebase Config
+// ================== FIREBASE CONFIG ==================
 const firebaseConfig = {
   apiKey: "AIzaSyAJ_orkgIUsqXLyhRX472muqBEfvJR2pA0",
   authDomain: "gaming-hub-f0a02.firebaseapp.com",
@@ -18,7 +18,7 @@ const authDiv = document.getElementById("auth");
 const dashboard = document.getElementById("dashboard");
 const postsDiv = document.getElementById("posts");
 
-// Auth State
+// ================== AUTH ==================
 auth.onAuthStateChanged(user => {
   if (user) {
     authDiv.style.display = "none";
@@ -30,18 +30,16 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// Signup
 function signup() {
-  const email = emailInput();
-  const password = passwordInput();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
   auth.createUserWithEmailAndPassword(email, password)
     .catch(err => alert(err.message));
 }
 
-// Login
 function login() {
-  const email = emailInput();
-  const password = passwordInput();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
   auth.signInWithEmailAndPassword(email, password)
     .catch(err => alert(err.message));
 }
@@ -50,20 +48,13 @@ function logout() {
   auth.signOut();
 }
 
-function emailInput() {
-  return document.getElementById("email").value;
-}
-
-function passwordInput() {
-  return document.getElementById("password").value;
-}
-
-// Add Post
+// ================== ADD POST ==================
 function addPost() {
   const text = document.getElementById("postInput").value.trim();
   if (!text) return alert("Write something first");
 
   const user = auth.currentUser;
+  if (!user) return alert("Login required");
 
   database.ref("posts").push({
     text: text,
@@ -76,7 +67,8 @@ function addPost() {
 
   document.getElementById("postInput").value = "";
 }
-// Load Posts (Real-Time)
+
+// ================== LOAD POSTS ==================
 function loadPosts() {
   database.ref("posts").on("value", snapshot => {
 
@@ -91,31 +83,33 @@ function loadPosts() {
 
       const data = child.val();
       const postId = child.key;
-      const currentUser = auth.currentUser;
+      const user = auth.currentUser;
 
-      const date = new Date(data.timestamp);
-      const timeString = date.toLocaleString();
+      const timeString = data.timestamp
+        ? new Date(data.timestamp).toLocaleString()
+        : "";
 
-      // ✅ Safe like count
       const likesCount =
-  data.likes && typeof data.likes === "object"
-    ? Object.keys(data.likes).length
-    : 0;
+        data.likes && typeof data.likes === "object"
+          ? Object.keys(data.likes).length
+          : 0;
 
-      // ✅ Safe liked check
       const userLiked =
-        currentUser && data.likes && data.likes[currentUser.uid];
+        user &&
+        data.likes &&
+        typeof data.likes === "object" &&
+        data.likes[user.uid];
 
-      // ✅ Render comments
+      // ----- COMMENTS -----
       let commentsHTML = "";
-      if (data.comments) {
+      if (data.comments && typeof data.comments === "object") {
         Object.entries(data.comments).forEach(([cid, comment]) => {
           commentsHTML += `
             <div class="comment">
               <strong>${comment.email}</strong>: ${comment.text}
               <small>${new Date(comment.timestamp).toLocaleString()}</small>
               ${
-                currentUser && currentUser.uid === comment.uid
+                user && user.uid === comment.uid
                   ? `<button onclick="deleteComment('${postId}','${cid}')">X</button>`
                   : ""
               }
@@ -138,7 +132,7 @@ function loadPosts() {
             </button>
 
             ${
-              currentUser && currentUser.uid === data.uid
+              user && user.uid === data.uid
                 ? `<button onclick="deletePost('${postId}')">Delete</button>`
                 : ""
             }
@@ -157,29 +151,32 @@ function loadPosts() {
     });
   });
 }
-// Like Post
+
+// ================== LIKE ==================
 function likePost(postId) {
   const user = auth.currentUser;
   if (!user) return;
 
-  const likeRef = database.ref(`posts/${postId}/likes/${user.uid}`);
+  const likeRef = database.ref("posts/" + postId + "/likes/" + user.uid);
 
-  likeRef.once("value", snapshot => {
+  likeRef.once("value").then(snapshot => {
     if (snapshot.exists()) {
-      // Unlike
       likeRef.remove();
     } else {
-      // Like
       likeRef.set(true);
     }
   });
 }
 
-// Delete Post
+// ================== DELETE POST ==================
 function deletePost(postId) {
+  const user = auth.currentUser;
+  if (!user) return;
+
   database.ref("posts/" + postId).remove();
 }
-// Add Comment
+
+// ================== ADD COMMENT ==================
 function addComment(postId) {
   const user = auth.currentUser;
   if (!user) return alert("Login required");
@@ -198,4 +195,12 @@ function addComment(postId) {
   });
 
   input.value = "";
+}
+
+// ================== DELETE COMMENT ==================
+function deleteComment(postId, commentId) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  database.ref("posts/" + postId + "/comments/" + commentId).remove();
 }
